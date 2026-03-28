@@ -99,3 +99,26 @@ def plot_comparison(length, force, I=8.33e-6, save_path=None):
         print(f"그래프 저장됨: {save_path}")
 
     plt.show()
+
+def calculate_distributed_load(length, w, E, I, num_points=100):
+    """
+    Simply supported beam, 균일 분포하중
+    
+    Parameters:
+        w : 단위길이당 하중 (N/m)
+    """
+    x = np.linspace(0, length, num_points)
+    L = length
+    y = (w * x) / (24 * E * I) * (L**3 - 2 * L * x**2 + x**3)
+    return x, -y
+
+
+def calculate_cantilever(length, force, E, I, num_points=100):
+    """
+    외팔보(cantilever), 자유단 집중하중
+    """
+    x = np.linspace(0, length, num_points)
+    L = length
+    P = force
+    y = (P * x**2) / (6 * E * I) * (3 * L - x)
+    return x, -y

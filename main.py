@@ -1,4 +1,9 @@
-from src.beam import calculate_beam_deflection, plot_deflection
+from src.beam import (
+    calculate_beam_deflection,
+    calculate_distributed_load,
+    calculate_cantilever,
+    plot_deflection
+)
 from src.parser import parse_input
 from src.llm_parser import parse_input_llm
 from src.materials import get_material
@@ -7,9 +12,10 @@ from src.materials import get_material
 def run(params, I=8.33e-6):
     length = params["length"]
     force = params["force"]
+    load_type = params.get("load_type", "center")
 
     # 재료 설정
-    material_name = params.get("material", "강철")  # 기본값 강철
+    material_name = params.get("material", "강철")
     material = get_material(material_name)
 
     if material is None:
@@ -18,8 +24,19 @@ def run(params, I=8.33e-6):
 
     E = material["E"]
     print(f"재료: {material_name} (E = {E:.2e} Pa)")
+    print(f"하중 조건: {load_type}")
 
-    x, y = calculate_beam_deflection(length, force, E, I)
+    # 하중 조건별 계산
+    if load_type == "center":
+        x, y = calculate_beam_deflection(length, force, E, I)
+    elif load_type == "distributed":
+        x, y = calculate_distributed_load(length, force, E, I)
+    elif load_type == "cantilever":
+        x, y = calculate_cantilever(length, force, E, I)
+    else:
+        print(f"알 수 없는 하중 조건: {load_type}. 중앙 집중하중으로 대체합니다.")
+        x, y = calculate_beam_deflection(length, force, E, I)
+
     plot_deflection(x, y, length, force, save_path="examples/output.png")
     print(f"최대 변위: {min(y) * 1000:.4f} mm")
 
