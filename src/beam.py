@@ -1,5 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+import platform
+
+# 한글 폰트 설정
+if platform.system() == 'Windows':
+    plt.rcParams['font.family'] = 'Malgun Gothic'
+elif platform.system() == 'Darwin':
+    plt.rcParams['font.family'] = 'AppleGothic'
+else:
+    plt.rcParams['font.family'] = 'DejaVu Sans'
+
+plt.rcParams['axes.unicode_minus'] = False
 
 
 def calculate_beam_deflection(length, force, E, I, num_points=100):
@@ -31,15 +43,20 @@ def calculate_beam_deflection(length, force, E, I, num_points=100):
     return x, -y  # 아래 방향을 음수로 표현
 
 
-def plot_deflection(x, y, length, force):
+def plot_deflection(x, y, length, force, save_path=None):
     plt.figure(figsize=(10, 4))
-    plt.plot(x, y * 1000, color='steelblue', linewidth=2)  # mm 단위로 변환
+    plt.plot(x, y * 1000, color='steelblue', linewidth=2)
     plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
     plt.title(f'Beam Deflection (L={length}m, F={force}N)')
     plt.xlabel('Position (m)')
     plt.ylabel('Deflection (mm)')
     plt.grid(True)
     plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path)
+        print(f"그래프 저장됨: {save_path}")
+
     plt.show()
 
 
@@ -55,3 +72,30 @@ if __name__ == "__main__":
 
     max_deflection = min(y)
     print(f"최대 변위: {max_deflection * 1000:.4f} mm")
+
+def plot_comparison(length, force, I=8.33e-6, save_path=None):
+    """
+    재료별 변위 비교 그래프
+    """
+    from src.materials import MATERIALS
+
+    plt.figure(figsize=(10, 5))
+
+    for name, props in MATERIALS.items():
+        E = props["E"]
+        x, y = calculate_beam_deflection(length, force, E, I)
+        plt.plot(x, y * 1000, linewidth=2, label=f"{name} (E={E:.2e})")
+
+    plt.axhline(0, color='black', linewidth=0.8, linestyle='--')
+    plt.title(f'재료별 변위 비교 (L={length}m, F={force}N)')
+    plt.xlabel('Position (m)')
+    plt.ylabel('Deflection (mm)')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path)
+        print(f"그래프 저장됨: {save_path}")
+
+    plt.show()
